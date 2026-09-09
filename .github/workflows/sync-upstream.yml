@@ -12,18 +12,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
       - name: Add upstream remote
         run: git remote add upstream https://github.com/mtvpls/MoonTVPlus.git || true
       - name: Fetch upstream
         run: git fetch upstream
       - name: Merge upstream main
+        id: merge
         run: git merge upstream/main --no-edit
-        env:
-          GIT_AUTHOR_NAME: github-actions
-          GIT_AUTHOR_EMAIL: github-actions@github.com
-          GIT_COMMITTER_NAME: github-actions
-          GIT_COMMITTER_EMAIL: github-actions@github.com
-      - name: Push
+      - name: Get new commit SHA
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Push ref via API
         env:
           GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
-        run: git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+            -X PUT \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/lzylipu/MoonTVPlus/git/refs/heads/main \
+            -d '{"sha":"${{ steps.sha.outputs.sha }}"}'
