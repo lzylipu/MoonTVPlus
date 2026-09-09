@@ -25,5 +25,5 @@ jobs:
           GIT_COMMITTER_EMAIL: github-actions@github.com
       - name: Push
         env:
-          GITHUB_TOKEN: ${{ secrets.PUSH_TOKEN }}
-        run: git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+          GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
+        run: git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
